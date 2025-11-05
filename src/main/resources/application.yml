@@ -9,5 +9,9 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     generate-ddl: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show_sql: true
+
+jwt:
+  secretKey: Y2hhdHNlcnZlcnNjcmV0YWNjZXNzdG9rZW5jaGF0c2VydmVyc2NyZXRhY2Nlc3N0b2tlbmNoYXRzZXJ2ZXJzY3JldGFjY2Vzc3Rva2Vu
+  expiration: 3000 # 3000 min

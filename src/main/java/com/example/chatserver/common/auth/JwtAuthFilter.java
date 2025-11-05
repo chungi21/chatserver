@@ -10,6 +10,6 @@ public class JwtAuthFilter extends GenericFilter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-
+        filterChain.doFilter(servletRequest, servletResponse);
     }
 }
