@@ -31,7 +31,7 @@ public class SecurityConfigs {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable) // csrf 비활성화
                 .httpBasic(AbstractHttpConfigurer::disable) // HTTP Basic 비활성화
-                .authorizeHttpRequests( a -> a.requestMatchers("/member/create","/","/member/doLogin", "/connect").permitAll().anyRequest().authenticated()) // 인증처리 제외 url
+                .authorizeHttpRequests( a -> a.requestMatchers("/member/create","/","/member/doLogin", "/connect/**").permitAll().anyRequest().authenticated()) // 인증처리 제외 url
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션방식 사용x
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
