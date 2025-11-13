@@ -1,5 +1,6 @@
 package com.example.chatserver.chat.controller;
 
+import com.example.chatserver.chat.dto.ChatMessageDto;
 import com.example.chatserver.chat.dto.ChatRoomListResDTO;
 import com.example.chatserver.chat.service.ChatService;
 import org.springframework.http.HttpStatus;
@@ -38,4 +39,11 @@ public class ChatController {
         return ResponseEntity.ok().build();
     }
 
+    // 이전 메세지 조회
+    @GetMapping("/history/{roomId}")
+    public ResponseEntity<?> getChattingHistory(@PathVariable Long roomId) {
+        List<ChatMessageDto> chatMessageDtos = chatService.getChatHistory(roomId);
+        return ResponseEntity.ok(chatMessageDtos);
+    }
+    
 }
