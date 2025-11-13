@@ -61,7 +61,11 @@ public class ChatController {
         return new ResponseEntity<>(myChatListResDtos, HttpStatus.OK);
     }
     
-
-
+    // 내 채팅방 나가기
+    @DeleteMapping("/room/group/{roomId}/leave")
+    public ResponseEntity<?> leaveGroupChatRoom(@PathVariable Long roomId) {
+        chatService.leaveGroupChatRoom(roomId);
+        return ResponseEntity.ok().build();
+    }
     
 }
