@@ -5,6 +5,7 @@ import com.example.chatserver.chat.domain.ChatParticipant;
 import com.example.chatserver.chat.domain.ChatRoom;
 import com.example.chatserver.chat.domain.ReadStatus;
 import com.example.chatserver.chat.dto.ChatMessageReqDto;
+import com.example.chatserver.chat.dto.ChatRoomListResDTO;
 import com.example.chatserver.chat.repository.ChatMessageRepository;
 import com.example.chatserver.chat.repository.ChatParticipantRepository;
 import com.example.chatserver.chat.repository.ChatRoomRepository;
@@ -16,7 +17,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -36,13 +39,12 @@ public class ChatService {
         this.memberRepository = memberRepository;
     }
 
-
     public void saveMessage(Long roomId, ChatMessageReqDto chatMessageReqDto) {
         // 채팅방 조회
-        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(() -> new EntityNotFoundException("room을 찾을 수 없습니다."));
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(() -> new EntityNotFoundException("saveMessage - room을 찾을 수 없습니다."));
 
         // 보낸이 조회
-        Member sender = memberRepository.findByEmail(chatMessageReqDto.getSenderEmail()).orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+        Member sender = memberRepository.findByEmail(chatMessageReqDto.getSenderEmail()).orElseThrow(() -> new EntityNotFoundException("saveMessage - 사용자를 찾을 수 없습니다."));
         
         // 메세지 저장
         ChatMessage chatMessage = ChatMessage.builder()
@@ -78,7 +80,7 @@ public class ChatService {
 
         // 채팅 참여자로 개설자를 추가
         // 방 생성자의 정보
-        Member roomCreater = memberRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+        Member roomCreater = memberRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(() -> new EntityNotFoundException("createGroupRoom - 사용자를 찾을 수 없습니다."));
 
         // 개설자 추가
         ChatParticipant chatParticipant = ChatParticipant.builder()
@@ -88,4 +90,47 @@ public class ChatService {
 
         chatParticipantRepository.save(chatParticipant);
     }
+
+    public List<ChatRoomListResDTO> getGroupchatRoom() {
+        List<ChatRoom> chatRooms = chatRoomRepository.findByIsGroupChat("Y");
+
+        List<ChatRoomListResDTO> chatRoomListResDTOList = new ArrayList<>();
+
+        for(ChatRoom c : chatRooms) {
+            ChatRoomListResDTO chatRoomListResDTO = ChatRoomListResDTO.builder()
+                    .roomName(c.getName())
+                    .roomId(c.getId())
+                    .build();
+            chatRoomListResDTOList.add(chatRoomListResDTO);
+        }
+
+        return chatRoomListResDTOList;
+    }
+
+
+    public void addParticipantToGroupChat(Long roomId) {
+        // 채킹방 조회
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new EntityNotFoundException("addParticipantToGroupChat - room을 찾을 수 없습니다."));
+
+        // member 조회
+        Member currentMember = memberRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(() -> new EntityNotFoundException("addParticipantToGroupChat - 사용자를 찾을 수 없습니다."));
+
+        // 이미 참여자인지 검증
+        Optional<ChatParticipant> participant = chatParticipantRepository.findByChatRoomAndMember(chatRoom, currentMember);
+        if(!participant.isPresent()){
+            addParticipant(chatRoom, currentMember);
+        }
+
+    }
+
+    // ChatParticipant 생성 후 저장 (채팅 참여시 참여자가 아니라면 사용)
+    public void addParticipant(ChatRoom chatRoom, Member member){
+        ChatParticipant chatParticipant = ChatParticipant.builder()
+                .chatRoom(chatRoom)
+                .member(member)
+                .build();
+
+        chatParticipantRepository.save(chatParticipant);
+    }
+
 }
