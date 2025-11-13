@@ -6,6 +6,7 @@ import com.example.chatserver.chat.domain.ChatRoom;
 import com.example.chatserver.chat.domain.ReadStatus;
 import com.example.chatserver.chat.dto.ChatMessageDto;
 import com.example.chatserver.chat.dto.ChatRoomListResDTO;
+import com.example.chatserver.chat.dto.MyChatListResDto;
 import com.example.chatserver.chat.repository.ChatMessageRepository;
 import com.example.chatserver.chat.repository.ChatParticipantRepository;
 import com.example.chatserver.chat.repository.ChatRoomRepository;
@@ -107,7 +108,6 @@ public class ChatService {
         return chatRoomListResDTOList;
     }
 
-
     public void addParticipantToGroupChat(Long roomId) {
         // 채킹방 조회
         ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new EntityNotFoundException("addParticipantToGroupChat - room을 찾을 수 없습니다."));
@@ -188,4 +188,42 @@ public class ChatService {
 
         return false;
     }
+
+    public void messageRead(Long roomId) {
+        // - 채킹방 조회
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId).orElseThrow(()-> new EntityNotFoundException("messageRead - room을 찾을 수 없습니다."));
+
+        // - member 조회
+        Member currentMember = memberRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(() -> new EntityNotFoundException("messageRead - 사용자를 찾을 수 없습니다."));
+
+        List<ReadStatus> readStatuses = readStatusRepository.findByChatRoomAndMember(chatRoom, currentMember);
+        for(ReadStatus r : readStatuses) {
+            r.updateIsRead(true);
+        }
+    }
+
+    public List<MyChatListResDto> getMyChatRooms(){
+        // - member 조회
+        Member currentMember = memberRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(() -> new EntityNotFoundException("getMyChatRooms - 사용자를 찾을 수 없습니다."));
+
+        List<ChatParticipant> chatParticipants = chatParticipantRepository.findAllByMember(currentMember);
+
+        List<MyChatListResDto> chatListResDtos = new ArrayList<>();
+
+        for(ChatParticipant c : chatParticipants) {
+            Long count = readStatusRepository.countByChatRoomAndMemberAndIsReadFalse(c.getChatRoom(), currentMember);
+
+            MyChatListResDto dto = MyChatListResDto.builder()
+                    .roomId(c.getChatRoom().getId())
+                    .roomName(c.getChatRoom().getName())
+                    .isGroupChat(c.getChatRoom().getIsGroupChat())
+                    .unReadCount(count)
+                    .build();
+
+            chatListResDtos.add(dto);
+        }
+
+        return chatListResDtos;
+    }
+
 }
