@@ -3,7 +3,6 @@ package com.example.chatserver.chat.service;
 import com.example.chatserver.chat.dto.ChatMessageDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -16,7 +15,7 @@ public class RedisPubSubService implements MessageListener {
     private final StringRedisTemplate stringRedisTemplate;
     private final SimpMessageSendingOperations messageTemplate;
 
-    public RedisPubSubService(@Qualifier("chatPubSub") StringRedisTemplate stringRedisTemplate, SimpMessageSendingOperations messageTemplate) {
+    public RedisPubSubService(StringRedisTemplate stringRedisTemplate, SimpMessageSendingOperations messageTemplate) {
         this.stringRedisTemplate = stringRedisTemplate;
         this.messageTemplate = messageTemplate;
     }
